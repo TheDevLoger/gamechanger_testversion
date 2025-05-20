@@ -75,6 +75,11 @@
             color: #444;
             font-style: italic;
         }
+
+        tr.new-day {
+            border-top: 3px solid #007acc;
+        }
+
     </style>
 </head>
 <body>
@@ -123,7 +128,9 @@
 
         function renderTable(data) {
             const tbody = document.querySelector('#calendarTable tbody');
-            tbody.innerHTML = ''; // vorherige Zeilen löschen
+            tbody.innerHTML = '';
+
+            let lastDate = null;
 
             data.forEach(ev => {
                 const tr = document.createElement('tr');
@@ -132,18 +139,25 @@
                 const datum = dateObj.toLocaleDateString('de-DE');
                 const zeit = dateObj.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
+                // Wenn neues Datum → visuelle Trennung
+                if (datum !== lastDate) {
+                    tr.classList.add('new-day');
+                    lastDate = datum;
+                }
+
                 tr.innerHTML = `
-              <td>${datum}</td>
-              <td>${zeit}</td>
-              <td>${ev.country}</td>
-              <td>${ev.title}</td>
-              <td class="impact-${ev.impact || 'Low'}">${ev.impact || ''}</td>
-              <td>${ev.forecast || ''}</td>
-              <td>${ev.previous || ''}</td>
-            `;
+                  <td>${datum}</td>
+                  <td>${zeit}</td>
+                  <td>${ev.country}</td>
+                  <td>${ev.title}</td>
+                  <td class="impact-${ev.impact || 'Low'}">${ev.impact || ''}</td>
+                  <td>${ev.forecast || ''}</td>
+                  <td>${ev.previous || ''}</td>
+                `;
                 tbody.appendChild(tr);
             });
         }
+
 
         // Dropdown-Filter
         document.getElementById('impactFilter').addEventListener('change', function () {
