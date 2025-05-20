@@ -42,6 +42,11 @@
             background-color: #f9f9f9;
         }
 
+        tr:hover {
+            background-color: #d9ebff;
+            cursor: pointer;
+        }
+
         .impact-Low {
             color: #777;
         }
@@ -83,10 +88,9 @@
 
     <script>
         async function loadCalendar() {
-            const response = await fetch('events.json'); // Datei im gleichen Ordner
+            const response = await fetch('events.json');
             const data = await response.json();
 
-            // Sortieren nach Datum/Zeit
             data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             const tbody = document.querySelector('#calendarTable tbody');
