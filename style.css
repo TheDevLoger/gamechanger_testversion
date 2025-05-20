@@ -169,3 +169,27 @@ ul#taskList {
         position: static;
     }
 }
+
+#calendarTable tr.new-day {
+    border-top: 2px solid #007acc;
+}
+
+.impact-High td {
+    color: red;
+    font-weight: bold;
+}
+
+.impact-Medium td {
+    color: orange;
+    font-weight: bold;
+}
+
+.impact-Low td {
+    color: #555;
+}
+
+.impact-Holiday td {
+    color: #444;
+    font-style: italic;
+}
+
