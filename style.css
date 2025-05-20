@@ -193,3 +193,83 @@ ul#taskList {
     font-style: italic;
 }
 
+.left-sidebar {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.left-sidebar h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+    .left-sidebar h2 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .left-sidebar #filterContainer {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+.left-sidebar select {
+    padding: 6px 10px;
+    font-size: 0.95em;
+}
+
+.left-sidebar table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.9em;
+}
+
+.left-sidebar th, td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.left-sidebar th {
+    background-color: #007acc;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.left-sidebar tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.left-sidebar tr:hover {
+    background-color: #d9ebff;
+    cursor: pointer;
+}
+
+    .left-sidebar .impact-Low {
+        color: #777;
+    }
+
+    .left-sidebar .impact-Medium {
+        color: orange;
+        font-weight: bold;
+    }
+
+    .left-sidebar .impact-High {
+        color: red;
+        font-weight: bold;
+    }
+
+    .left-sidebar .impact-Holiday {
+        color: #444;
+        font-style: italic;
+    }
+
+.left-sidebar tr.new-day {
+    border-top: 3px solid #007acc;
+}
