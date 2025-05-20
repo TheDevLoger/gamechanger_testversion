@@ -14,113 +14,100 @@
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        .calendar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .day {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            border-radius: 8px;
-            padding: 10px 15px;
-            box-shadow: 0 0 6px rgba(0,0,0,0.1);
-            min-width: 260px;
+            font-size: 0.9em;
         }
 
-            .day h2 {
-                font-size: 1.1em;
-                margin-top: 0;
-                border-bottom: 1px solid #ccc;
-                padding-bottom: 5px;
-            }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: left;
+        }
 
-        .event {
-            margin: 10px 0;
-            padding: 8px;
-            background: #eef;
-            border-left: 5px solid #448aff;
+        th {
+            background-color: #007acc;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
 
         .impact-Low {
-            border-color: #a0a0a0;
+            color: #777;
         }
 
         .impact-Medium {
-            border-color: orange;
+            color: orange;
+            font-weight: bold;
         }
 
         .impact-High {
-            border-color: red;
+            color: red;
+            font-weight: bold;
         }
 
         .impact-Holiday {
-            border-color: #888;
-            background: #eee;
-        }
-
-        .event time {
-            font-weight: bold;
+            color: #444;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
-    <h1>Wirtschaftskalender – Diese Woche</h1>
-    <div id="calendar" class="calendar"></div>
+    <h1>Wirtschaftskalender – Kompaktansicht</h1>
+    <div style="overflow-x:auto;">
+        <table id="calendarTable">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Uhrzeit</th>
+                    <th>Währung</th>
+                    <th>Ereignis</th>
+                    <th>Impact</th>
+                    <th>Forecast</th>
+                    <th>Vorher</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
     <script>
         async function loadCalendar() {
-            const response = await fetch('events.json'); // Datei muss im gleichen Verzeichnis liegen
+            const response = await fetch('events.json'); // Datei im gleichen Ordner
             const data = await response.json();
 
-            // Nach Datum gruppieren
-            const eventsByDate = {};
-            data.forEach(event => {
-                const date = new Date(event.date).toISOString().split('T')[0];
-                if (!eventsByDate[date]) eventsByDate[date] = [];
-                eventsByDate[date].push(event);
-            });
+            // Sortieren nach Datum/Zeit
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            const calendar = document.getElementById('calendar');
+            const tbody = document.querySelector('#calendarTable tbody');
 
-            // Sortierte Tagesansicht erstellen
-            Object.keys(eventsByDate).sort().forEach(dateStr => {
-                const events = eventsByDate[dateStr];
-                const dateObj = new Date(dateStr);
-                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
-                const readableDate = dateObj.toLocaleDateString('de-DE', options);
+            data.forEach(ev => {
+                const tr = document.createElement('tr');
+                const dateObj = new Date(ev.date);
 
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'day';
+                const datum = dateObj.toLocaleDateString('de-DE');
+                const zeit = dateObj.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-                const dayTitle = document.createElement('h2');
-                dayTitle.textContent = readableDate;
-                dayDiv.appendChild(dayTitle);
-
-                events.forEach(ev => {
-                    const eventDiv = document.createElement('div');
-                    const impactClass = 'impact-' + (ev.impact || 'Low');
-                    eventDiv.className = `event ${impactClass}`;
-                    const time = new Date(ev.date).toLocaleTimeString('de-DE', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-
-                    eventDiv.innerHTML = `
-                    <time>${time}</time><br>
-                    <strong>${ev.title}</strong><br>
-                    <small>${ev.country}</small><br>
-                    ${ev.forecast ? 'Forecast: ' + ev.forecast + '<br>' : ''}
-                    ${ev.previous ? 'Previous: ' + ev.previous : ''}
-                  `;
-                    dayDiv.appendChild(eventDiv);
-                });
-
-                calendar.appendChild(dayDiv);
+                tr.innerHTML = `
+              <td>${datum}</td>
+              <td>${zeit}</td>
+              <td>${ev.country}</td>
+              <td>${ev.title}</td>
+              <td class="impact-${ev.impact || 'Low'}">${ev.impact || ''}</td>
+              <td>${ev.forecast || ''}</td>
+              <td>${ev.previous || ''}</td>
+            `;
+                tbody.appendChild(tr);
             });
         }
 
