@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wirtschaftskalender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .day {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.1);
+            min-width: 260px;
+        }
+
+            .day h2 {
+                font-size: 1.1em;
+                margin-top: 0;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 5px;
+            }
+
+        .event {
+            margin: 10px 0;
+            padding: 8px;
+            background: #eef;
+            border-left: 5px solid #448aff;
+        }
+
+        .impact-Low {
+            border-color: #a0a0a0;
+        }
+
+        .impact-Medium {
+            border-color: orange;
+        }
+
+        .impact-High {
+            border-color: red;
+        }
+
+        .impact-Holiday {
+            border-color: #888;
+            background: #eee;
+        }
+
+        .event time {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wirtschaftskalender – Diese Woche</h1>
+    <div id="calendar" class="calendar"></div>
+
+    <script>
+        async function loadCalendar() {
+            const response = await fetch('events.json'); // Datei muss im gleichen Verzeichnis liegen
+            const data = await response.json();
+
+            // Nach Datum gruppieren
+            const eventsByDate = {};
+            data.forEach(event => {
+                const date = new Date(event.date).toISOString().split('T')[0];
+                if (!eventsByDate[date]) eventsByDate[date] = [];
+                eventsByDate[date].push(event);
+            });
+
+            const calendar = document.getElementById('calendar');
+
+            // Sortierte Tagesansicht erstellen
+            Object.keys(eventsByDate).sort().forEach(dateStr => {
+                const events = eventsByDate[dateStr];
+                const dateObj = new Date(dateStr);
+                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+                const readableDate = dateObj.toLocaleDateString('de-DE', options);
+
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+
+                const dayTitle = document.createElement('h2');
+                dayTitle.textContent = readableDate;
+                dayDiv.appendChild(dayTitle);
+
+                events.forEach(ev => {
+                    const eventDiv = document.createElement('div');
+                    const impactClass = 'impact-' + (ev.impact || 'Low');
+                    eventDiv.className = `event ${impactClass}`;
+                    const time = new Date(ev.date).toLocaleTimeString('de-DE', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    eventDiv.innerHTML = `
+                    <time>${time}</time><br>
+                    <strong>${ev.title}</strong><br>
+                    <small>${ev.country}</small><br>
+                    ${ev.forecast ? 'Forecast: ' + ev.forecast + '<br>' : ''}
+                    ${ev.previous ? 'Previous: ' + ev.previous : ''}
+                  `;
+                    dayDiv.appendChild(eventDiv);
+                });
+
+                calendar.appendChild(dayDiv);
+            });
+        }
+
+        loadCalendar();
+    </script>
+</body>
+</html>
