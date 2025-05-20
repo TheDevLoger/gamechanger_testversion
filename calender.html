@@ -14,7 +14,17 @@
 
         h1 {
             text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #filterContainer {
+            text-align: center;
             margin-bottom: 20px;
+        }
+
+        select {
+            padding: 6px 10px;
+            font-size: 0.95em;
         }
 
         table {
@@ -69,6 +79,18 @@
 </head>
 <body>
     <h1>Wirtschaftskalender – Kompaktansicht</h1>
+
+    <div id="filterContainer">
+        <label for="impactFilter"><strong>Impact filtern:</strong></label>
+        <select id="impactFilter">
+            <option value="All">Alle</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Holiday">Holiday</option>
+        </select>
+    </div>
+
     <div style="overflow-x:auto;">
         <table id="calendarTable">
             <thead>
@@ -87,13 +109,21 @@
     </div>
 
     <script>
+        let fullData = [];
+
         async function loadCalendar() {
             const response = await fetch('events.json');
             const data = await response.json();
 
-            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Sortieren
+            fullData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+            renderTable(fullData);
+        }
+
+        function renderTable(data) {
             const tbody = document.querySelector('#calendarTable tbody');
+            tbody.innerHTML = ''; // vorherige Zeilen löschen
 
             data.forEach(ev => {
                 const tr = document.createElement('tr');
@@ -114,6 +144,17 @@
                 tbody.appendChild(tr);
             });
         }
+
+        // Dropdown-Filter
+        document.getElementById('impactFilter').addEventListener('change', function () {
+            const selected = this.value;
+            if (selected === 'All') {
+                renderTable(fullData);
+            } else {
+                const filtered = fullData.filter(ev => ev.impact === selected);
+                renderTable(filtered);
+            }
+        });
 
         loadCalendar();
     </script>
