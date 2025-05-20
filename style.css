@@ -32,7 +32,7 @@ body {
 
 /* ---- Linke Spalte (Dashboard-Karten) ---- */
 .main-content {
-    flex: 0 0 45%;
+    flex: 0 0 60%;
 }
 
 /* ---- Rechte Spalte (Aufgabenliste) ---- */
