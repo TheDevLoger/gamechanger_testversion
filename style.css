@@ -15,7 +15,7 @@ body {
     color: var(--primary-text);
     font-family: 'Share Tech Mono', monospace;
     margin: 0;
-    padding: 20px 20px 20px 0;
+    padding: 20px 20px 20px 10px;
 }
 
 /* ---- Container & Spaltenlayout ---- */
