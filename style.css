@@ -32,7 +32,7 @@ body {
 
 /* ---- Linke Spalte (Dashboard-Karten) ---- */
 .main-content {
-    flex: 0 0 60%;
+    flex: 0 0 55%;
 }
 
 /* ---- Rechte Spalte (Aufgabenliste) ---- */
@@ -199,7 +199,9 @@ ul#taskList {
     margin: 0;
     padding: 20px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-    flex: 0 0 55%;
+    flex: 0 0 52%;
+    height: 80vh;
+    overflow-y: auto;
 }
 
 .left-sidebar h1 {
