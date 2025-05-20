@@ -37,7 +37,7 @@ body {
 
 /* ---- Rechte Spalte (Aufgabenliste) ---- */
 .todo-container {
-    flex: 0 0 35%;
+    flex: 0 0 37%;
     background: var(--card-bg);
     padding: 1rem;
     border-radius: 8px;
@@ -200,7 +200,7 @@ ul#taskList {
     padding: 20px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     flex: 0 0 52%;
-    height: 80vh;
+    height: 70vh;
     overflow-y: auto;
 }
 
