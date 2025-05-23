@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Benutzer A</title>
+    <title>Dashboard Erik Lähner</title>
     <link id="theme-link" rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>👤 Dashboard Benutzer A</h1>
+        <h1>👤 Dashboard Erik Lähner</h1>
 
         <!-- 🧱 Wrapper für 3-Spalten-Layout -->
         <div class="dashboard-wrapper">
@@ -48,24 +48,84 @@
                 </div>
 
                 <div class="card">
-                    <h2>🧰 Arbeitszeit</h2>
+                    <h2>🧰 Arbeitszeit + 💪 Sportzeit</h2>
                     <p><span id="arbeitszeit">00:00:00</span></p>
                     <button id="arbeitszeitBtn" onclick="toggleArbeitszeit()">🟢 Starten</button>
+                    <p><span id="sportzeit">00:00:00</span></p>
+                    <button id="sportzeitBtn" onclick="toggleSportzeit()">🟢 Workout Starten</button>
                 </div>
 
+                <!--
+            <div class="card">
+                <h2>📅 Tagesübersicht</h2>
+                <div id="tage-a"></div>
+            </div>
+            -->
+                <!-- // DER POSITION SIZE CALCULATOR----------------------------------------------------------------------- -->
                 <div class="card">
-                    <h2>📅 Tagesübersicht</h2>
-                    <div id="tage-a"></div>
-                </div>
+                    <h2>Lot Size Calculator</h2>
 
-                <div class="card">
-                    <h2>📊 Arbeitszeiten Zeitleiste</h2>
-                    <div id="zeitleiste-a" class="timeline"></div>
+                    <label for="balance">Kontogröße (EUR):</label>
+                    <input id="balance" type="number" placeholder="z.B. 10000" step="any" />
+
+                    <label for="risk">Risiko (%):</label>
+                    <input id="risk" type="number" placeholder="z.B. 2" step="any" />
+
+                    <label for="stoploss">Stop-Loss (Pips):</label>
+                    <input id="stoploss" type="number" placeholder="z.B. 50" step="any" />
+
+                    <label for="pair">Währungspaar:</label>
+                    <select id="pair">
+                        <option value="EUR/USD">EUR/USD</option>
+                        <option value="GBP/USD">GBP/USD</option>
+                        <option value="USD/JPY">USD/JPY</option>
+                        <option value="USD/CHF">USD/CHF</option>
+                        <option value="AUD/USD">AUD/USD</option>
+                        <option value="USD/CAD">USD/CAD</option>
+                        <option value="NZD/USD">NZD/USD</option>
+                        <option value="GBP/JPY">GBP/JPY</option>
+                        <option value="EUR/JPY">EUR/JPY</option>
+                        <option value="AUD/JPY">AUD/JPY</option>
+                        <option value="EURNZD">EURNZD</option>
+                        <option value="EUR/GBP">EUR/GBP</option>
+                    </select>
+
+                    <button id="calcBtn">Berechne Lotgröße</button>
+
+                    <div id="result" class="result"></div>
+                    <div id="warning" class="warning"></div>
                 </div>
             </div>
-
+            <!-- // DER POSITION SIZE CALCULATOR----------------------------------------------------------------------- -->
             <!-- Rechte Spalte -->
             <div class="todo-container">
+                <div>
+                    <button id="btnNewNote">➕ Neue Notiz öffnen</button>
+                    <button id="btnShowNotes">🗂️ Notizen anzeigen</button>
+                </div>
+
+                <!-- Notiz bearbeiten Modal -->
+                <div id="noteModal">
+                    <div class="modal-content">
+                        <span class="close-btn" id="closeNoteModal">✖</span>
+                        <input type="text" id="modalTitle" placeholder="Betreff" />
+                        <textarea id="modalTextarea" placeholder="Notiztext"></textarea>
+                        <div class="modal-buttons">
+                            <button class="save-btn" id="saveNoteBtn">💾 Speichern</button>
+                            <button class="delete-btn-notes" id="deleteNoteBtn">🗑️ Löschen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notizen Liste Modal -->
+                <div id="notesListModal">
+                    <div class="modal-content">
+                        <span class="close-btn" id="closeListModal">✖</span>
+                        <h2>Deine Notizen</h2>
+                        <ul id="notesList"></ul>
+                    </div>
+                </div>
+
                 <h2>📝 Aufgabenliste</h2>
                 <div class="todo-input">
                     <input type="text" id="taskInput" placeholder="Neue Aufgabe eingeben...">
@@ -80,225 +140,533 @@
     </div>
 </body>
 
-<script>
-    const userKey = "BenutzerA";
-    let arbeitsStart = null;
-    let arbeitsTimer = null;
-    let letzteAktualisierung = Date.now();
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc,
+            addDoc,
+            collection,
+            serverTimestamp,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    function formatTime(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-        const seconds = String(totalSeconds % 60).padStart(2, "0");
-        return `${hours}:${minutes}:${seconds}`;
-    }
+        // 🔧 Deine Konfiguration hier einsetzen:
+        const firebaseConfig = {
+            apiKey: "AIzaSyAujeUok4jKYwnr5GEXze_EadszqMdY1y4",
+            authDomain: "gamechanger-78fb4.firebaseapp.com",
+            projectId: "gamechanger-78fb4",
+            storageBucket: "gamechanger-78fb4.firebasestorage.app",
+            messagingSenderId: "510513691722",
+            appId: "1:510513691722:web:c0c1a97141ddfda4377ab3"
+        };
 
-    function updateLoginTime() {
-        const jetzt = Date.now();
-        const loginZeit = parseInt(localStorage.getItem("loginZeit") || jetzt);
-        const onlineDauer = jetzt - loginZeit;
-        document.getElementById("zeitOnline").textContent = formatTime(onlineDauer);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        const heute = new Date().toISOString().slice(0, 10);
-        const protokollKey = "zeitprotokoll_" + userKey;
-        const protokoll = JSON.parse(localStorage.getItem(protokollKey)) || {};
+        const userKey = "BenutzerA";
+        const dashboard = "A";
 
-        const vergangeneMs = jetzt - letzteAktualisierung;
-        protokoll[heute] = (protokoll[heute] || 0) + vergangeneMs;
-        localStorage.setItem(protokollKey, JSON.stringify(protokoll));
+        let arbeitsStart = null;
+        let arbeitsTimer = null;
+        let sportStart = null;
+        let sportTimer = null;
+        let letzteAktualisierung = Date.now();
 
-        letzteAktualisierung = jetzt;
-        updateProtokoll(protokoll);
-    }
-
-    function toggleArbeitszeit() {
-        const btn = document.getElementById("arbeitszeitBtn");
-        if (arbeitsStart === null) {
-            arbeitsStart = Date.now();
-            btn.textContent = "🔴 Stoppen";
-            arbeitsTimer = setInterval(updateArbeitszeit, 1000);
-        } else {
-            const ende = Date.now();
-            const dauer = ende - arbeitsStart;
-            const key = "arbeitszeiten_" + userKey;
-            const einträge = JSON.parse(localStorage.getItem(key)) || [];
-            einträge.push({ start: arbeitsStart, ende: ende, dauer: dauer });
-            localStorage.setItem(key, JSON.stringify(einträge));
-            arbeitsStart = null;
-            clearInterval(arbeitsTimer);
-            document.getElementById("arbeitszeit").textContent = "00:00:00";
-            btn.textContent = "🟢 Starten";
-            renderZeitleiste();
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+            const seconds = String(totalSeconds % 60).padStart(2, "0");
+            return `${hours}:${minutes}:${seconds}`;
         }
-    }
 
-    function updateArbeitszeit() {
-        if (arbeitsStart !== null) {
-            const dauer = Date.now() - arbeitsStart;
-            document.getElementById("arbeitszeit").textContent = formatTime(dauer);
+        async function saveLoginTime() {
+            const ref = doc(db, "logins", `${userKey}_${dashboard}`);
+            await setDoc(ref, {
+                loginZeit: serverTimestamp()
+            }, { merge: true });
         }
-    }
 
-    function updateProtokoll(data) {
-        const el = document.getElementById("tage-a");
-        el.innerHTML = "";
-        const keys = Object.keys(data).sort();
-        for (const tag of keys) {
-            const p = document.createElement("p");
-            p.textContent = `${tag}: ${formatTime(data[tag])}`;
-            el.appendChild(p);
+        async function getLoginTime() {
+            const ref = doc(db, "logins", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(ref);
+            return snapshot.exists() ? snapshot.data().loginZeit.toMillis?.() || Date.now() : Date.now();
         }
-    }
 
-    function renderZeitleiste() {
-        const zeitleiste = document.getElementById("zeitleiste-a");
-        zeitleiste.innerHTML = "";
+        async function updateLoginTime() {
+            const jetzt = Date.now();
+            const loginZeit = await getLoginTime();
+            const onlineDauer = jetzt - loginZeit;
+            document.getElementById("zeitOnline").textContent = formatTime(onlineDauer);
 
-        const einträge = JSON.parse(localStorage.getItem("arbeitszeiten_" + userKey)) || [];
+            const heute = new Date().toISOString().slice(0, 10);
+            const protokollRef = doc(db, "zeitprotokolle", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(protokollRef);
+            const vergangeneMs = jetzt - letzteAktualisierung;
+            const alteDauer = snapshot.exists() && snapshot.data()[heute] ? snapshot.data()[heute] : 0;
 
-        einträge.forEach(eintrag => {
-            const start = new Date(eintrag.start);
-            const ende = new Date(eintrag.ende);
-            const tag = start.toISOString().slice(0, 10);
-            const stundenGesamt = 24;
+            await setDoc(protokollRef, {
+                [heute]: alteDauer + vergangeneMs
+            }, { merge: true });
 
-            if (tag === new Date().toISOString().slice(0, 10)) {
-                const startProzent = ((start.getHours() * 60 + start.getMinutes()) / (stundenGesamt * 60)) * 100;
-                const dauerMin = (ende - start) / 60000;
-                const breiteProzent = (dauerMin / (stundenGesamt * 60)) * 100;
+            letzteAktualisierung = jetzt;
+            updateProtokollUI({ [heute]: alteDauer + vergangeneMs });
+        }
 
-                const bar = document.createElement("div");
-                bar.className = "timeline-bar";
-                bar.style.left = startProzent + "%";
-                bar.style.width = breiteProzent + "%";
-                zeitleiste.appendChild(bar);
+        async function toggleArbeitszeit() {
+            const btn = document.getElementById("arbeitszeitBtn");
+            if (arbeitsStart === null) {
+                arbeitsStart = Date.now();
+                btn.textContent = "🔴 Stoppen";
+                arbeitsTimer = setInterval(updateArbeitszeit, 1000);
+            } else {
+                const ende = Date.now();
+                const dauer = ende - arbeitsStart;
+                await addDoc(collection(db, "arbeitszeiten", `${userKey}_${dashboard}`, "eintraege"), {
+                    start: arbeitsStart,
+                    ende: ende,
+                    dauer: dauer
+                });
+                arbeitsStart = null;
+                clearInterval(arbeitsTimer);
+                document.getElementById("arbeitszeit").textContent = "00:00:00";
+                btn.textContent = "🟢 Starten";
+                renderZeitleiste();
             }
-        });
-    }
+        }
 
-    function logout() {
-        localStorage.removeItem("eingeloggt");
-        localStorage.removeItem("loginZeit");
-        window.location.href = "index.html";
-    }
-
-    if (!localStorage.getItem("loginZeit")) {
-        localStorage.setItem("loginZeit", Date.now());
-    }
-
-    // Aufgabenliste Logik
-    const taskInput = document.getElementById("taskInput");
-    const addTaskBtn = document.getElementById("addTaskBtn");
-    const taskList = document.getElementById("taskList");
-    const tasksKey = "tasks_" + userKey;
-
-    function loadTasks() {
-        const tasks = JSON.parse(localStorage.getItem(tasksKey)) || [];
-        taskList.innerHTML = "";
-        tasks.forEach((task, index) => {
-            const li = document.createElement("li");
-            li.className = "task-item";
-
-            const span = document.createElement("span");
-            span.className = "task-text" + (task.done ? " done" : "");
-            span.textContent = task.text;
-            span.onclick = () => toggleTaskDone(index);
-
-            const delBtn = document.createElement("button");
-            delBtn.textContent = "❌";
-            delBtn.className = "delete-btn";
-            delBtn.onclick = () => deleteTask(index);
-
-            li.appendChild(span);
-            li.appendChild(delBtn);
-            taskList.appendChild(li);
-        });
-    }
-
-    function saveTasks(tasks) {
-        localStorage.setItem(tasksKey, JSON.stringify(tasks));
-        loadTasks();
-    }
-
-    function addTask() {
-        const value = taskInput.value.trim();
-        if (!value) return;
-        const tasks = JSON.parse(localStorage.getItem(tasksKey)) || [];
-        tasks.push({ text: value, done: false });
-        saveTasks(tasks);
-        taskInput.value = "";
-    }
-
-    function toggleTaskDone(index) {
-        const tasks = JSON.parse(localStorage.getItem(tasksKey)) || [];
-        tasks[index].done = !tasks[index].done;
-        saveTasks(tasks);
-    }
-
-    function deleteTask(index) {
-        const tasks = JSON.parse(localStorage.getItem(tasksKey)) || [];
-        tasks.splice(index, 1);
-        saveTasks(tasks);
-    }
-
-    addTaskBtn.addEventListener("click", addTask);
-    taskInput.addEventListener("keypress", e => {
-        if (e.key === "Enter") addTask();
-    });
-
-
-    let calendarData = [];
-
-    async function loadCalendar() {
-        const res = await fetch('events.json');
-        const data = await res.json();
-
-        calendarData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
-        renderCalendar(calendarData);
-    }
-
-    function renderCalendar(data) {
-        const tbody = document.querySelector('#calendarTable tbody');
-        tbody.innerHTML = '';
-        let lastDate = '';
-
-        data.forEach(ev => {
-            const dateObj = new Date(ev.date);
-            const datum = dateObj.toLocaleDateString('de-DE');
-            const zeit = dateObj.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
-            const tr = document.createElement('tr');
-            if (datum !== lastDate) {
-                tr.classList.add('new-day');
-                lastDate = datum;
+        function updateArbeitszeit() {
+            if (arbeitsStart !== null) {
+                const dauer = Date.now() - arbeitsStart;
+                document.getElementById("arbeitszeit").textContent = formatTime(dauer);
             }
+        }
 
-            tr.innerHTML = `
-                <td>${datum}</td>
-                <td>${zeit}</td>
-                <td>${ev.country}</td>
-                <td title="${ev.title}">${ev.title}</td>
-                `;
-            tr.classList.add(`impact-${ev.impact || 'Low'}`);
-            tbody.appendChild(tr);
+        async function toggleSportzeit() {
+            const btn = document.getElementById("sportzeitBtn");
+            if (sportStart === null) {
+                sportStart = Date.now();
+                btn.textContent = "🔴 Stoppen";
+                sportTimer = setInterval(updateSportzeit, 1000);
+            } else {
+                const ende = Date.now();
+                const dauer = ende - sportStart;
+                await addDoc(collection(db, "sportzeiten", `${userKey}_${dashboard}`, "eintraege"), {
+                    start: sportStart,
+                    ende: ende,
+                    dauer: dauer
+                });
+                sportStart = null;
+                clearInterval(sportTimer);
+                document.getElementById("sportzeit").textContent = "00:00:00";
+                btn.textContent = "🟢 Workout Starten";
+            }
+        }
+
+        function updateSportzeit() {
+            if (sportStart !== null) {
+                const dauer = Date.now() - sportStart;
+                document.getElementById("sportzeit").textContent = formatTime(dauer);
+            }
+        }
+
+        function updateProtokollUI(data) {
+            const el = document.getElementById("tage-a");
+            el.innerHTML = "";
+            for (const tag in data) {
+                const p = document.createElement("p");
+                p.textContent = `${tag}: ${formatTime(data[tag])}`;
+                el.appendChild(p);
+            }
+        }
+
+        async function renderZeitleiste() {
+            const zeitleiste = document.getElementById("zeitleiste-a");
+            zeitleiste.innerHTML = "";
+            const heute = new Date().toISOString().slice(0, 10);
+
+            const eintraegeSnap = await getDocs(collection(db, "arbeitszeiten", `${userKey}_${dashboard}`, "eintraege"));
+            eintraegeSnap.forEach(docSnap => {
+                const eintrag = docSnap.data();
+                const start = new Date(eintrag.start);
+                const ende = new Date(eintrag.ende);
+                const tag = start.toISOString().slice(0, 10);
+                const stundenGesamt = 24;
+
+                if (tag === heute) {
+                    const startProzent = ((start.getHours() * 60 + start.getMinutes()) / (stundenGesamt * 60)) * 100;
+                    const dauerMin = (ende - start) / 60000;
+                    const breiteProzent = (dauerMin / (stundenGesamt * 60)) * 100;
+
+                    const bar = document.createElement("div");
+                    bar.className = "timeline-bar";
+                    bar.style.left = startProzent + "%";
+                    bar.style.width = breiteProzent + "%";
+                    zeitleiste.appendChild(bar);
+                }
+            });
+        }
+
+        async function logout() {
+            window.location.href = "index.html";
+        }
+
+        // Aufgabenliste
+        const taskInput = document.getElementById("taskInput");
+        const addTaskBtn = document.getElementById("addTaskBtn");
+        const taskList = document.getElementById("taskList");
+
+        async function loadTasks() {
+            const ref = doc(db, "aufgaben", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(ref);
+            const tasks = snapshot.exists() ? snapshot.data().tasks || [] : [];
+            taskList.innerHTML = "";
+            tasks.forEach((task, index) => {
+                const li = document.createElement("li");
+                li.className = "task-item";
+
+                const span = document.createElement("span");
+                span.className = "task-text" + (task.done ? " done" : "");
+                span.textContent = task.text;
+                span.onclick = () => toggleTaskDone(index);
+
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "❌";
+                delBtn.className = "delete-btn";
+                delBtn.onclick = () => deleteTask(index);
+
+                li.appendChild(span);
+                li.appendChild(delBtn);
+                taskList.appendChild(li);
+            });
+        }
+
+        async function saveTasks(tasks) {
+            const ref = doc(db, "aufgaben", `${userKey}_${dashboard}`);
+            await setDoc(ref, { tasks }, { merge: true });
+            loadTasks();
+        }
+
+        async function addTask() {
+            const value = taskInput.value.trim();
+            if (!value) return;
+            const ref = doc(db, "aufgaben", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(ref);
+            const tasks = snapshot.exists() ? snapshot.data().tasks || [] : [];
+            tasks.push({ text: value, done: false });
+            await saveTasks(tasks);
+            taskInput.value = "";
+        }
+
+        async function toggleTaskDone(index) {
+            const ref = doc(db, "aufgaben", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(ref);
+            const tasks = snapshot.exists() ? snapshot.data().tasks || [] : [];
+            tasks[index].done = !tasks[index].done;
+            await saveTasks(tasks);
+        }
+
+        async function deleteTask(index) {
+            const ref = doc(db, "aufgaben", `${userKey}_${dashboard}`);
+            const snapshot = await getDoc(ref);
+            const tasks = snapshot.exists() ? snapshot.data().tasks || [] : [];
+            tasks.splice(index, 1);
+            await saveTasks(tasks);
+        }
+
+        addTaskBtn.addEventListener("click", addTask);
+        taskInput.addEventListener("keypress", e => {
+            if (e.key === "Enter") addTask();
         });
-    }
 
-    document.getElementById('impactFilter').addEventListener('change', function () {
-        const selected = this.value;
-        if (selected === 'All') {
+        let calendarData = [];
+
+        async function loadCalendar() {
+            const res = await fetch('events.json');
+            const data = await res.json();
+
+            calendarData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
             renderCalendar(calendarData);
-        } else {
-            const filtered = calendarData.filter(ev => ev.impact === selected);
-            renderCalendar(filtered);
         }
-    });
 
-    loadCalendar();
-    setInterval(updateLoginTime, 1000);
-    renderZeitleiste();
-    loadTasks();
-</script>
-</body>
+        function renderCalendar(data) {
+            const tbody = document.querySelector('#calendarTable tbody');
+            tbody.innerHTML = '';
+            let lastDate = '';
+
+            data.forEach(ev => {
+                const dateObj = new Date(ev.date);
+                const datum = dateObj.toLocaleDateString('de-DE');
+                const zeit = dateObj.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+                const tr = document.createElement('tr');
+                if (datum !== lastDate) {
+                    tr.classList.add('new-day');
+                    lastDate = datum;
+                }
+
+                tr.innerHTML = `
+            <td>${datum}</td>
+            <td>${zeit}</td>
+            <td>${ev.country}</td>
+            <td title="${ev.title}">${ev.title}</td>
+            `;
+                tr.classList.add(`impact-${ev.impact || 'Low'}`);
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('impactFilter').addEventListener('change', function () {
+            const selected = this.value;
+            if (selected === 'All') {
+                renderCalendar(calendarData);
+            } else {
+                const filtered = calendarData.filter(ev => ev.impact === selected);
+                renderCalendar(filtered);
+            }
+        });
+
+        // RECHNER SKRIPT --------------------------------------------------------------------------------------------------------------------------
+        const pipValues = {
+            "EUR/USD": 10,
+            "GBP/USD": 10,
+            "USD/JPY": 9.1,
+            "USD/CHF": 10.5,
+            "AUD/USD": 10,
+            "USD/CAD": 7.9,
+            "NZD/USD": 10,
+            "GBP/JPY": 7.3,
+            "EUR/JPY": 7.8,
+            "AUD/JPY": 7.4,
+            "EURNZD": 6.9,
+            "EUR/GBP": 11
+        };
+
+        document.getElementById("calcBtn").addEventListener("click", function () {
+            const balance = parseFloat(document.getElementById("balance").value);
+            const riskPercent = parseFloat(document.getElementById("risk").value) / 100;
+            const stopLoss = parseFloat(document.getElementById("stoploss").value);
+            const pair = document.getElementById("pair").value;
+
+            const resultDiv = document.getElementById("result");
+            const warningDiv = document.getElementById("warning");
+
+            if (isNaN(balance) || isNaN(riskPercent) || isNaN(stopLoss) || balance <= 0 || stopLoss <= 0) {
+                resultDiv.innerText = "";
+                warningDiv.innerText = "Bitte gültige Werte eingeben.";
+                return;
+            }
+
+            const pipValue = pipValues[pair] || 10;
+
+            // API-Anfrage für EUR/USD-Wechselkurs
+            fetch('https://api.frankfurter.app/latest?from=EUR&to=USD')
+                .then(response => response.json())
+                .then(data => {
+                    const eurToUsd = data.rates.USD;
+                    const balanceUSD = balance * eurToUsd;
+                    const riskAmount = balanceUSD * riskPercent;
+                    const lotSize = riskAmount / (stopLoss * pipValue);
+
+                    resultDiv.innerText = `Lotgröße: ${lotSize.toFixed(2)} Lots (Kurs EUR/USD: ${eurToUsd.toFixed(4)})`;
+                    warningDiv.innerText = "";
+                })
+                .catch(() => {
+                    warningDiv.innerText = "Fehler beim Abrufen der Wechselkurse.";
+                    resultDiv.innerText = "";
+                });
+        });
+        // RECHNER SKRIPT --------------------------------------------------------------------------------------------------------------------------
+
+        // NOTES SKRIPT --------------------------------------------------------------------------------------------------------------------------
+        // Referenz auf Notizen für Benutzer "userA"
+        const notesCollection = db.collection("users").doc("userA").collection("notes");
+
+        // State Variablen
+        let notes = [];
+        let currentIndex = null;
+        let currentDocId = null; // Firestore Dokument ID
+        let isNewNote = false;
+
+        // Elemente
+        const noteModal = document.getElementById("noteModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalTextarea = document.getElementById("modalTextarea");
+        const closeNoteModalBtn = document.getElementById("closeNoteModal");
+        const saveNoteBtn = document.getElementById("saveNoteBtn");
+        const deleteNoteBtn = document.getElementById("deleteNoteBtn");
+
+        const notesListModal = document.getElementById("notesListModal");
+        const notesList = document.getElementById("notesList");
+        const closeListModalBtn = document.getElementById("closeListModal");
+
+        const btnNewNote = document.getElementById("btnNewNote");
+        const btnShowNotes = document.getElementById("btnShowNotes");
+
+        // Lade alle Notizen aus Firestore und aktualisiere `notes` Array
+        async function loadNotes() {
+            try {
+                const snapshot = await notesCollection.orderBy("title").get();
+                notes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    title: doc.data().title,
+                    text: doc.data().text
+                }));
+            } catch (error) {
+                alert("Fehler beim Laden der Notizen: " + error.message);
+                notes = [];
+            }
+        }
+
+        // Render Notizen-Liste im Popup
+        function renderNotesList() {
+            notesList.innerHTML = "";
+            if (notes.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "Keine Notizen vorhanden.";
+                li.style.cursor = "default";
+                li.style.background = "transparent";
+                li.style.boxShadow = "none";
+                notesList.appendChild(li);
+                return;
+            }
+            notes.forEach((note, index) => {
+                const li = document.createElement("li");
+                li.textContent = note.title || "(Ohne Betreff)";
+                li.title = note.title || "(Ohne Betreff)";
+                li.onclick = () => {
+                    openModal(index);
+                    closeListModal();
+                };
+                notesList.appendChild(li);
+            });
+        }
+
+        // Modal öffnen für neue oder vorhandene Notiz
+        function openModal(index = null) {
+            if (index === null) {
+                // Neue Notiz
+                isNewNote = true;
+                currentIndex = null;
+                currentDocId = null;
+                modalTitle.value = "";
+                modalTextarea.value = "";
+            } else {
+                // Vorhandene Notiz bearbeiten
+                isNewNote = false;
+                currentIndex = index;
+                currentDocId = notes[index].id;
+                modalTitle.value = notes[index].title;
+                modalTextarea.value = notes[index].text;
+            }
+            noteModal.style.display = "flex";
+            adjustTextareaBackground();
+            modalTextarea.focus();
+        }
+
+        // Modal schließen
+        function closeModal() {
+            noteModal.style.display = "none";
+        }
+
+        // Liste Modal öffnen
+        function openListModal() {
+            renderNotesList();
+            notesListModal.style.display = "flex";
+        }
+
+        // Liste Modal schließen
+        function closeListModal() {
+            notesListModal.style.display = "none";
+        }
+
+        // Notiz speichern (neu oder update)
+        async function saveModal() {
+            const title = modalTitle.value.trim();
+            const text = modalTextarea.value.trim();
+
+            if (!title && !text) {
+                alert("Bitte gib mindestens einen Betreff oder Text ein.");
+                return;
+            }
+
+            try {
+                if (isNewNote) {
+                    // Neu anlegen
+                    const docRef = await notesCollection.add({ title, text });
+                    notes.push({ id: docRef.id, title, text });
+                } else if (currentDocId) {
+                    // Update
+                    await notesCollection.doc(currentDocId).set({ title, text });
+                    notes[currentIndex] = { id: currentDocId, title, text };
+                }
+                closeModal();
+            } catch (error) {
+                alert("Fehler beim Speichern: " + error.message);
+            }
+        }
+
+        // Notiz löschen
+        async function deleteModal() {
+            if (isNewNote) {
+                // Neue Notiz abbrechen
+                closeModal();
+                return;
+            }
+            if (!currentDocId) return;
+
+            if (!confirm("Willst du diese Notiz wirklich löschen?")) return;
+
+            try {
+                await notesCollection.doc(currentDocId).delete();
+                notes.splice(currentIndex, 1);
+                closeModal();
+            } catch (error) {
+                alert("Fehler beim Löschen: " + error.message);
+            }
+        }
+
+        // Textarea Hintergrund dynamisch anpassen an Größe
+        function adjustTextareaBackground() {
+            // Bei uns reicht, dass der Hintergrund das Textarea ausfüllt.
+            // Falls du mehr brauchst, sag Bescheid.
+            modalTextarea.style.background = getComputedStyle(modalTextarea).backgroundColor;
+        }
+
+        // Event Listeners
+        btnNewNote.addEventListener("click", () => openModal());
+        btnShowNotes.addEventListener("click", () => openListModal());
+        closeNoteModalBtn.addEventListener("click", closeModal);
+        closeListModalBtn.addEventListener("click", closeListModal);
+        saveNoteBtn.addEventListener("click", saveModal);
+        deleteNoteBtn.addEventListener("click", deleteModal);
+
+        // Schließen Modal wenn Klick außerhalb Content
+        window.addEventListener("click", (e) => {
+            if (e.target === noteModal) closeModal();
+            if (e.target === notesListModal) closeListModal();
+        });
+
+        // Initiales Laden der Notizen
+        (async () => {
+            await loadNotes();
+        })();
+        // NOTES SKRIPT --------------------------------------------------------------------------------------------------------------------------
+
+        loadCalendar();
+
+        await saveLoginTime();
+        setInterval(updateLoginTime, 1000);
+        renderZeitleiste();
+        loadTasks();
+
+        window.toggleArbeitszeit = toggleArbeitszeit;
+        window.toggleSportzeit = toggleSportzeit;
+        window.logout = logout;
+
+    </script>
 </html>

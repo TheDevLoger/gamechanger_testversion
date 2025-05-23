@@ -200,14 +200,14 @@ ul#taskList {
     padding: 20px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     flex: 0 0 52%;
-    height: 70vh;
+    height: 80vh;
     overflow-y: auto;
 }
 
-.left-sidebar h1 {
-    text-align: center;
-    margin-bottom: 10px;
-}
+    .left-sidebar h1 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
 
     .left-sidebar h2 {
         text-align: center;
@@ -219,40 +219,40 @@ ul#taskList {
         margin-bottom: 20px;
     }
 
-.left-sidebar select {
-    padding: 6px 10px;
-    font-size: 0.95em;
-}
+    .left-sidebar select {
+        padding: 6px 10px;
+        font-size: 0.95em;
+    }
 
-.left-sidebar table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    font-size: 0.9em;
-}
+    .left-sidebar table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        font-size: 0.9em;
+    }
 
-.left-sidebar th, td {
-    border: 1px solid #ddd;
-    padding: 4px 6px;
-    text-align: left;
-}
+    .left-sidebar th, td {
+        border: 1px solid #ddd;
+        padding: 4px 6px;
+        text-align: left;
+    }
 
-.left-sidebar th {
-    background-color: #007acc;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
+    .left-sidebar th {
+        background-color: #007acc;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
 
-.left-sidebar tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
+    .left-sidebar tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
 
-.left-sidebar tr:hover {
-    background-color: #d9ebff;
-    cursor: pointer;
-}
+    .left-sidebar tr:hover {
+        background-color: #d9ebff;
+        cursor: pointer;
+    }
 
     .left-sidebar .impact-Low {
         color: #777;
@@ -273,6 +273,129 @@ ul#taskList {
         font-style: italic;
     }
 
-.left-sidebar tr.new-day {
-    border-top: 3px solid #007acc;
+    .left-sidebar tr.new-day {
+        border-top: 3px solid #007acc;
+    }
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
+
+
+
+#noteModal, #notesListModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+    .modal-content input,
+    .modal-content textarea {
+        width: 100%;
+        margin-top: 0.5rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        resize: vertical;
+        background: #fefefe;
+        transition: background 0.3s;
+        min-height: 50px;
+        overflow-y: auto;
+    }
+
+    .modal-content textarea {
+        min-height: 150px;
+    }
+
+.modal-buttons {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+    .modal-buttons button {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        user-select: none;
+    }
+
+.save-btn {
+    background: #28a745;
+    color: white;
+}
+
+.delete-btn-notes {
+    background: #dc3545;
+    color: white;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+    user-select: none;
+}
+
+/* Notizen Liste Modal */
+#notesListModal .modal-content {
+    max-width: 500px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#notesList {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+    width: 100%;
+}
+
+    #notesList li {
+        background: white;
+        margin: 0.5rem 0;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: background-color 0.2s;
+        font-size: 1rem;
+        text-align: left;
+    }
+
+        #notesList li:hover {
+            background-color: #e8f0fe;
+        }
