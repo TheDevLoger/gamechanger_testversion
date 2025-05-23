@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notizblock – Benutzer A</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        button {
+            margin: 0.5rem;
+            padding: 0.75rem 1.2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            max-width: 400px;
+            margin: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        #noteModal,
+        #notesListModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.4);
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            resize: none;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #eee;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📘 Notizen von Benutzer A</h1>
+    <div>
+        <button onclick="openNewNoteModal()">➕ Neue Notiz öffnen</button>
+        <button onclick="openNotesListModal()">🗂️ Notizen anzeigen</button>
+    </div>
+
+    <!-- Bearbeitungs-Modal -->
+    <div id="noteModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">✖</span>
+            <input type="text" id="modalTitle" placeholder="Betreff" />
+            <textarea id="modalTextarea" rows="5" placeholder="Notiztext"></textarea>
+            <div style="margin-top: 1rem;">
+                <button onclick="saveModal()" class="save-btn">💾 Speichern</button>
+                <button onclick="deleteModal()" class="delete-btn" style="background:#dc3545">🗑️ Löschen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notizenliste -->
+    <div id="notesListModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeListModal()">✖</span>
+            <h2>📋 Meine Notizen</h2>
+            <ul id="notesList"></ul>
+        </div>
+    </div>
+
+    <!-- Firebase + App -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            getDocs,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            doc
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // 🔧 Firebase-Konfiguration einfügen
+        const firebaseConfig = {
+            // apiKey: "...",
+            // projectId: "...",
+            // usw.
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const notesCol = collection(db, "users", "Benutzer-A", "notes");
+
+        let notes = [];
+        let noteIds = [];
+        let currentIndex = null;
+        let isNewNote = false;
+
+        const modal = document.getElementById("noteModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalTextarea = document.getElementById("modalTextarea");
+        const notesListModal = document.getElementById("notesListModal");
+        const notesList = document.getElementById("notesList");
+
+        async function loadNotes() {
+            const snapshot = await getDocs(notesCol);
+            notes = [];
+            noteIds = [];
+            snapshot.forEach(doc => {
+                notes.push(doc.data());
+                noteIds.push(doc.id);
+            });
+        }
+
+        function openModal(index) {
+            currentIndex = index;
+            isNewNote = false;
+            modalTitle.value = notes[index].title;
+            modalTextarea.value = notes[index].text;
+            modal.style.display = "flex";
+            autoResizeTextarea();
+        }
+
+        function openNewNoteModal() {
+            currentIndex = notes.length;
+            isNewNote = true;
+            modalTitle.value = "";
+            modalTextarea.value = "";
+            modal.style.display = "flex";
+            autoResizeTextarea();
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        function closeListModal() {
+            notesListModal.style.display = "none";
+        }
+
+        async function saveModal() {
+            const title = modalTitle.value.trim();
+            const text = modalTextarea.value.trim();
+            if (!title && !text) return;
+
+            if (isNewNote) {
+                const docRef = await addDoc(notesCol, { title, text });
+                notes.push({ title, text });
+                noteIds.push(docRef.id);
+            } else if (currentIndex !== null) {
+                const id = noteIds[currentIndex];
+                await updateDoc(doc(db, "users", "Benutzer-A", "notes", id), { title, text });
+                notes[currentIndex] = { title, text };
+            }
+            closeModal();
+        }
+
+        async function deleteModal() {
+            if (!isNewNote && currentIndex !== null) {
+                const id = noteIds[currentIndex];
+                await deleteDoc(doc(db, "users", "Benutzer-A", "notes", id));
+                notes.splice(currentIndex, 1);
+                noteIds.splice(currentIndex, 1);
+                closeModal();
+            } else {
+                closeModal();
+            }
+        }
+
+        async function openNotesListModal() {
+            await loadNotes();
+            notesList.innerHTML = "";
+            if (notes.length === 0) {
+                notesList.innerHTML = "<li>Keine Notizen vorhanden.</li>";
+            } else {
+                notes.forEach((note, index) => {
+                    const li = document.createElement("li");
+                    li.innerText = note.title || "(Ohne Betreff)";
+                    li.onclick = () => {
+                        openModal(index);
+                        closeListModal();
+                    };
+                    notesList.appendChild(li);
+                });
+            }
+            notesListModal.style.display = "flex";
+        }
+
+        function autoResizeTextarea() {
+            setTimeout(() => {
+                modalTextarea.style.height = "auto";
+                modalTextarea.style.height = modalTextarea.scrollHeight + "px";
+            }, 0);
+        }
+
+        modalTextarea.addEventListener("input", autoResizeTextarea);
+
+        // Funktionen für HTML verfügbar machen
+        window.openNewNoteModal = openNewNoteModal;
+        window.openNotesListModal = openNotesListModal;
+        window.closeModal = closeModal;
+        window.closeListModal = closeListModal;
+        window.saveModal = saveModal;
+        window.deleteModal = deleteModal;
+
+        // Startinitialisierung
+        loadNotes();
+    </script>
+</body>
+</html>
